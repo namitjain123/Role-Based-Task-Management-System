@@ -5,6 +5,9 @@ notes.md
 main1.py
 main3.py
 alembic.ini
-alembic/   
+alembic/
 migrations/
 __init__.py
+.env
+*.db
+.pytest_cache/

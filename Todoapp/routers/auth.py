@@ -1,4 +1,5 @@
 
+import os
 from quopri import encode
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException,status,Request, Header, Cookie
@@ -18,8 +19,8 @@ router= APIRouter(
     tags=["auth"]
 )
 
-SECRET_KEY = "d761a848bcec94d7a6a61da010e8e7b9d396c28124d0ce44c67e10247d0d83c7"
-ALGORITHM = "HS256"
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl="auth/token", auto_error=False)
 
@@ -60,7 +61,7 @@ def render_register_page(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
 
 ##Endpoints ###
-
+##This checks whether a username + password combo is valid.
 def authenticate_user(db: Session, username: str, password: str):
     user = db.query(Users).filter(Users.username == username).first()
     if not user:
@@ -76,8 +77,8 @@ def create_access_token(username:str,user_id:int,role:str,expires_delta: timedel
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 def get_token_from_request(
-    header_token: str | None = Depends(oauth2_bearer),   # ✅ enables Swagger Authorize
-    access_token: str | None = Cookie(default=None),     # ✅ enables browser cookie auth
+    header_token: str | None = Depends(oauth2_bearer),   # enables Swagger Authorize
+    access_token: str | None = Cookie(default=None),     #  enables browser cookie auth
 ) -> str | None:
     # 1) If Swagger/API sends Authorization: Bearer <token>
     if header_token:
@@ -93,7 +94,10 @@ async def get_current_user(
 ):
     
     if not token:
-        return None
+        return HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail="Could not validate user"
+)
   
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -102,17 +106,23 @@ async def get_current_user(
         role: str = payload.get("role")
 
         if username is None or user_id is None or role is None:
-            raise None
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Could not validate user"
+            )
 
     except JWTError:
-        raise None
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate user"
+        )
 
     user = db.query(Users).filter(Users.username == username).first()
     
 
     return user
 
-
+### create new user model and save it  to db
 @router.post("/",status_code=status.HTTP_201_CREATED)
 async def create_user(create_user_request: CreateUserRequest, db: db_dependency):
     create_user_model = Users(
