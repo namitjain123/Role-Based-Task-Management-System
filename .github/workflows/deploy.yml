@@ -33,7 +33,7 @@ jobs:
         run: pip install -r Todoapp/requirements.txt
 
       - name: Run tests
-        run: pytest Todoapp/test -v
+        run: python -m pytest Todoapp/test -v
 
   build-and-deploy:
     needs: test

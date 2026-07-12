@@ -14,7 +14,7 @@ router = APIRouter()
 router= APIRouter(
     prefix="/admin",
     tags=["admin"]
-)
+) 
 
 def get_db():
     db = SessionLocal() # create a new database session

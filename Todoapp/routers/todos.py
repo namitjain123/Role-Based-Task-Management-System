@@ -43,8 +43,10 @@ def redirect_to_login():
     redirect_response = RedirectResponse(url="/auth/login-page", status_code=status.HTTP_302_FOUND)
     redirect_response.delete_cookie(key="access_token")
     return redirect_response
+
+
+
 ###Pages ###
-@router.get("/todos-page", status_code=status.HTTP_200_OK)
 #does three things:
 #Checks if the user is logged in
 #Fetches only that user’s todos
@@ -52,7 +54,7 @@ def redirect_to_login():
 @router.get("/todos-page", status_code=status.HTTP_200_OK)
 async def render_todos_page(
     request: Request,
-    user: user_dependency,   # ✅ this will call get_current_user automatically
+    user: user_dependency,   # this will call get_current_user automatically
     db: db_dependency
 ):
     if user is None:

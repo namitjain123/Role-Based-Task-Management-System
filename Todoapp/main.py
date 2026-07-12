@@ -16,7 +16,6 @@ app = FastAPI()
 ## create the database
 Base.metadata.create_all(bind=engine)
 
-
 app.mount("/static", StaticFiles(directory="Todoapp/static"), name="static")    
 
 @app.get("/", status_code=status.HTTP_200_OK)
