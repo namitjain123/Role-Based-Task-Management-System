@@ -7,7 +7,6 @@ main3.py
 alembic.ini
 alembic/
 migrations/
-__init__.py
 .env
 *.db
 .pytest_cache/
