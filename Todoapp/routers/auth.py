@@ -94,11 +94,8 @@ async def get_current_user(
 ):
     
     if not token:
-        return HTTPException(
-    status_code=status.HTTP_401_UNAUTHORIZED,
-    detail="Could not validate user"
-)
-  
+        return None
+
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
