@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="container">
+    <div class="card">
+        <div class="card-header text-center">
+            <h1>All Users</h1>
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">Registered users ({{ users|length }})</h5>
+            <p class="card-text">Admin view — everyone who has an account.</p>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Username</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Role</th>
+                            <th scope="col">Active</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in users %}
+                        <tr>
+                            <td class="text-center" style="width:60px;">{{ u.id }}</td>
+                            <td>{{ u.username }}</td>
+                            <td>{{ u.first_name }} {{ u.last_name }}</td>
+                            <td>{{ u.email }}</td>
+                            <td>
+                                {% if u.role == 'admin' %}
+                                <span class="badge badge-primary">admin</span>
+                                {% else %}
+                                <span class="badge badge-secondary">{{ u.role }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if u.is_active %}
+                                <span class="badge badge-success">yes</span>
+                                {% else %}
+                                <span class="badge badge-danger">no</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

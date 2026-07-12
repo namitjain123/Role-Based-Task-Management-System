@@ -16,6 +16,11 @@
                     <a class="nav-link" href="/todos/todos-page">Home</a>
                 </li>
                 {% endif %}
+                {% if user and user.role == 'admin' %}
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/users-page">Users</a>
+                </li>
+                {% endif %}
             </ul>
 
             <ul class="navbar-nav ms-auto">
