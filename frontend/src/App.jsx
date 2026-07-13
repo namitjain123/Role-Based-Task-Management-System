@@ -11,15 +11,11 @@ import AdminRoute from "./components/AdminRoute";
 
 function App() {
   return (
-    // Navbar sits OUTSIDE <Routes>, so it renders on every page no matter
-    // which route matches - same job your old layout.html did with
-    // {% include "navbar.html" %} on every template.
+
     <>
       <Navbar />
       <Routes>
-        {/* <Routes> looks at the browser's current URL and renders whichever
-            <Route> matches - this is React's replacement for FastAPI deciding
-            which @router.get(...) function to run based on the URL path. */}
+
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

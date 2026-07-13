@@ -3,10 +3,7 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import { apiFetch } from "../api";
 
 function EditTodo() {
-  // useParams reads the dynamic part of the URL. Our route is defined in
-  // App.jsx as "/todos/edit/:todoId" - visiting /todos/edit/7 makes
-  // useParams() return { todoId: "7" }. This is React Router's version of
-  // FastAPI's Path(gt=0) todo_id: int parameter in your backend route.
+
   const { todoId } = useParams();
   const navigate = useNavigate();
 
@@ -19,11 +16,7 @@ function EditTodo() {
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
 
-  // Same pattern as Todos.jsx: fetch on mount, then fill the form fields
-  // from what the backend returns. Note the dependency array is [todoId]
-  // this time, not [] - if you ever navigated from editing todo 3 straight
-  // to editing todo 5 without a full page reload, this makes the effect
-  // run again to load todo 5's data instead of showing stale todo 3 data.
+
   useEffect(() => {
     async function loadTodo() {
       try {
@@ -126,8 +119,6 @@ function EditTodo() {
               </select>
             </div>
             <div className="form-group form-check">
-              {/* Checkboxes use "checked" instead of "value" - same controlled
-                  pattern, different prop name because that's what a checkbox is. */}
               <input
                 type="checkbox"
                 className="form-check-input"

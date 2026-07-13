@@ -6,21 +6,6 @@ function Todos() {
   const [todos, setTodos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // useEffect runs code AFTER the component renders, as a "side effect"
-  // (something outside of just returning JSX - here, a network call).
-  //
-  // Why do we need this at all? Your old Jinja route queried the DB and
-  // handed the template fully-formed data before anything was sent to the
-  // browser - the page arrived already populated. React works the opposite
-  // way: the component renders first (with todos = [], the initial state),
-  // THEN useEffect fires and fetches the real data, and calling setTodos(...)
-  // triggers a second render with the real list. That's why we need a
-  // loading state - there's a brief moment where we have no data yet.
-  //
-  // The [] second argument is the "dependency array" - it tells React "only
-  // run this effect once, right after the first render" (an empty array
-  // means "nothing this effect depends on ever changes, so never re-run it").
   useEffect(() => {
     async function loadTodos() {
       try {
@@ -76,11 +61,6 @@ function Todos() {
                 </tr>
               </thead>
               <tbody>
-                {/* .map() turns each todo into a table row - the React
-                    equivalent of Jinja's {% for todo in todos %}. React
-                    needs a unique "key" prop on each item in a list so it
-                    can track which row is which across re-renders - here
-                    todo.id (from the database) is the natural choice. */}
                 {incomplete.map((todo, index) => (
                   <tr key={todo.id}>
                     <td style={{ width: "60px" }}>{index + 1}</td>

@@ -6,9 +6,6 @@ function AdminUsers() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Same fetch-on-mount pattern as Todos.jsx. Hits GET /admin/users, which
-  // your backend returns via the UserResponse model - so no hashed_password
-  // is ever sent to the browser (the backend strips it).
   useEffect(() => {
     async function loadUsers() {
       try {
@@ -70,9 +67,7 @@ function AdminUsers() {
                     </td>
                     <td>{u.email}</td>
                     <td>
-                      {/* A "badge" is just a small colored label from Bootstrap.
-                          We pick the color based on the role value - this is
-                          the JSX way of doing an if/else inside markup. */}
+        
                       <span
                         className={
                           u.role === "admin"

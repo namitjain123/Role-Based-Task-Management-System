@@ -9,7 +9,31 @@ function AddTodo() {
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
 
+
+  const [quickText, setQuickText] = useState("");
+  const [parsing, setParsing] = useState(false);
+  const [parseError, setParseError] = useState(null);
+
   const navigate = useNavigate();
+
+  async function handleQuickAdd(event) {
+    event.preventDefault();
+    setParseError(null);
+    setParsing(true);
+    try {
+      const suggestion = await apiFetch("/todos/parse", {
+        method: "POST",
+        body: JSON.stringify({ text: quickText }),
+      });
+      setTitle(suggestion.title);
+      setDescription(suggestion.description);
+      setPriority(String(suggestion.priority)); // number -> string, for the <select>
+    } catch (err) {
+      setParseError(err.message);
+    } finally {
+      setParsing(false);
+    }
+  }
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -17,11 +41,7 @@ function AddTodo() {
     setSaving(true);
 
     try {
-      // Matches TodoRequest in Todoapp/routers/todos.py exactly - title and
-      // description as strings, priority as a NUMBER (the <select> gives us
-      // a string "1".."5", so we convert with Number(...) or the backend's
-      // Pydantic validation will reject it), complete always false for a
-      // brand-new todo.
+
       await apiFetch("/todos/todo/", {
         method: "POST",
         body: JSON.stringify({
@@ -46,6 +66,29 @@ function AddTodo() {
           <h1>Add New Todo</h1>
         </div>
         <div className="card-body">
+          <div className="card bg-light mb-4">
+            <div className="card-body">
+              <h6 className="card-title">Quick Add with AI</h6>
+              {parseError && <div className="alert alert-danger py-2">{parseError}</div>}
+              <form onSubmit={handleQuickAdd} className="d-flex gap-2">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder='Try: "email the design team about Q3 report by friday, high priority"'
+                  value={quickText}
+                  onChange={(e) => setQuickText(e.target.value)}
+                />
+                <button
+                  type="submit"
+                  className="btn btn-outline-primary text-nowrap"
+                  disabled={parsing || quickText.trim().length < 3}
+                >
+                  {parsing ? "Thinking..." : "Fill with AI"}
+                </button>
+              </form>
+            </div>
+          </div>
+
           {error && <div className="alert alert-danger">{error}</div>}
           <form onSubmit={handleSubmit}>
             <div className="form-group">
@@ -72,8 +115,7 @@ function AddTodo() {
             </div>
             <div className="form-group">
               <label>Priority</label>
-              {/* A <select>'s value in React works the same as text inputs -
-                  it's controlled by state (priority) and onChange updates it. */}
+
               <select
                 className="form-control"
                 value={priority}

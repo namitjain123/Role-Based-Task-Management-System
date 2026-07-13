@@ -19,8 +19,7 @@ function Register() {
     event.preventDefault();
     setError(null);
 
-    // Client-side check only - same as your old base.js. The backend never
-    // sees password2 at all, it's purely a "did you typo it" UX helper.
+  
     if (password !== password2) {
       setError("Passwords do not match");
       return;
@@ -28,8 +27,7 @@ function Register() {
 
     setSaving(true);
     try {
-      // Body shape matches CreateUserRequest in Todoapp/routers/auth.py
-      // exactly: email, username, first_name, last_name, password, role.
+
       await apiFetch("/auth/", {
         method: "POST",
         body: JSON.stringify({

@@ -1,6 +1,9 @@
+import os
+import json
 from typing import Annotated
 from fastapi import APIRouter, FastAPI, Depends, HTTPException, Path, Response, status,Request
 from pydantic import BaseModel, Field
+import httpx
 
 from Todoapp import models
 from ..database import SessionLocal, engine
@@ -39,6 +42,32 @@ class TodoRequest(BaseModel):
     priority: int   =Field(gt=0, lt=6)
     complete: bool  =Field(default=False)
 
+class ParseTodoRequest(BaseModel):
+    text: str = Field(min_length=3, max_length=500, example="email the design team about the Q3 report by friday, high priority")
+
+class ParsedTodo(BaseModel):
+    title: str
+    description: str
+    priority: int
+
+GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
+
+PARSE_SYSTEM_PROMPT = """You are a task-parsing assistant for a todo app.
+Given a short piece of natural language, extract a structured todo.
+
+Respond with ONLY a JSON object, no other text, in exactly this shape:
+{"title": "...", "description": "...", "priority": <integer 1-5>}
+
+Rules:
+- title: concise summary, 3 to 50 characters.
+- description: 3 to 200 characters. Restate the task with any extra detail
+  the input gives (who, what, when). If there's nothing beyond the title,
+  just restate the title as a full sentence.
+- priority: integer 1 (lowest) to 5 (highest). Infer urgency from words like
+  "urgent", "asap", "whenever", "no rush", explicit deadlines, etc.
+  Default to 3 if nothing suggests otherwise.
+"""
+
 def redirect_to_login():
     redirect_response = RedirectResponse(url="/auth/login-page", status_code=status.HTTP_302_FOUND)
     redirect_response.delete_cookie(key="access_token")
@@ -46,11 +75,6 @@ def redirect_to_login():
 
 
 
-###Pages ###
-#does three things:
-#Checks if the user is logged in
-#Fetches only that user’s todos
-#Renders the todos HTML page
 @router.get("/todos-page", status_code=status.HTTP_200_OK)
 async def render_todos_page(
     request: Request,
@@ -128,6 +152,74 @@ async def read_todo( user: user_dependency, db: db_dependency,todo_id:int =Path(
         return todo_model   
     raise HTTPException(status_code=404, detail=f"Todo with the id {todo_id} is not available")
 
+
+
+@router.post("/parse", status_code=status.HTTP_200_OK, response_model=ParsedTodo)
+async def parse_todo_text(user: user_dependency, request: ParseTodoRequest):
+    """
+    Turns a natural-language sentence into structured todo fields via Groq's
+    LLM API. Does NOT create a todo - it only returns suggested field values
+    so the user can review/edit them before actually submitting via the
+    normal POST /todos/todo/ endpoint above.
+    """
+    if user is None:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        raise HTTPException(
+            status_code=500,
+            detail="AI parsing is not configured on the server (missing GROQ_API_KEY).",
+        )
+
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={"Authorization": f"Bearer {api_key}"},
+                json={
+                    "model": GROQ_MODEL,
+                    "messages": [
+                        {"role": "system", "content": PARSE_SYSTEM_PROMPT},
+                        {"role": "user", "content": request.text},
+                    ],
+                    "response_format": {"type": "json_object"},
+                    "temperature": 0.2,
+                },
+            )
+    except httpx.RequestError as exc:
+        raise HTTPException(status_code=502, detail=f"Could not reach the AI service: {exc}")
+
+    if response.status_code != 200:
+        raise HTTPException(
+            status_code=502,
+            detail=f"AI service error ({response.status_code}): {response.text[:200]}",
+        )
+
+    try:
+        completion = response.json()
+        raw_content = completion["choices"][0]["message"]["content"]
+        parsed = json.loads(raw_content)
+
+        title = str(parsed.get("title", "")).strip()[:50]
+        description = str(parsed.get("description", "")).strip()[:200]
+        priority = int(parsed.get("priority", 3))
+        priority = max(1, min(5, priority))  # clamp into the 1-5 range TodoRequest requires
+
+        # Fall back to the user's raw text if the model returned something
+        # too short to pass TodoRequest's own min_length=3 validation later.
+        if len(title) < 3:
+            title = (request.text.strip()[:50] or "Untitled")
+        if len(description) < 3:
+            description = request.text.strip()[:200]
+
+    except (KeyError, ValueError, TypeError, json.JSONDecodeError) as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Could not understand the AI's response: {exc}",
+        )
+
+    return ParsedTodo(title=title, description=description, priority=priority)
 
 
 @router.post("/todo/",status_code=status.HTTP_201_CREATED)

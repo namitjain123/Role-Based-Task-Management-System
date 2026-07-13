@@ -4,18 +4,6 @@ import { getToken, clearToken, getUserRole } from "../api";
 function Navbar() {
   const navigate = useNavigate();
 
-  // Why call useLocation() even though we never use its return value?
-  //
-  // getToken() reads localStorage directly - it's not React state, so
-  // changing it (in Login.jsx via setToken, or below via clearToken) does
-  // NOT by itself make Navbar re-render. React only re-renders a component
-  // when ITS OWN state changes, or a parent re-renders it.
-  //
-  // useLocation() subscribes this component to React Router's current URL.
-  // Every time you navigate (login redirects to /todos, logout redirects to
-  // /login), the location changes, which forces Navbar to re-render - and
-  // on that re-render, getToken() below reads the fresh, current value.
-  // It's a small trick, but a common and legitimate one.
   useLocation();
 
   const token = getToken();
@@ -42,8 +30,7 @@ function Navbar() {
                 </Link>
               </li>
             )}
-            {/* Only admins ever see this link. Same RBAC idea as your old
-                navbar.html: {% if user and user.role == 'admin' %} */}
+
             {token && role === "admin" && (
               <li className="nav-item">
                 <Link className="nav-link" to="/admin/users">
