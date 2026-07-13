@@ -26,6 +26,39 @@ export function clearToken() {
 }
 
 // ---------------------------------------------------------------------------
+// getUserRole: read the "role" claim out of the JWT, client-side.
+//
+// Remember from the auth walkthrough: a JWT is three base64 parts joined by
+// dots - header.payload.signature - and the middle part is just base64-encoded
+// JSON like {"sub":"namit","role":"admin","exp":...}. So we can decode it in
+// the browser WITHOUT asking the backend, just to know what to show in the UI.
+//
+// IMPORTANT - this is for UI convenience only, NOT security. A user could edit
+// their localStorage or this code to fake "admin" and reveal the Users link.
+// That doesn't matter, because the real lock is on the backend: /admin/users
+// still checks the role on the server, and they can't forge a valid admin
+// token without your SECRET_KEY. This just decides what's worth *showing*.
+// ---------------------------------------------------------------------------
+
+export function getUserRole() {
+  const token = getToken();
+  if (!token) return null;
+  try {
+    // 1. grab the middle (payload) part
+    let payload = token.split(".")[1];
+    // 2. JWT uses "base64url" (- and _ instead of + and /); convert it back,
+    //    and pad the length to a multiple of 4 so atob() can decode it.
+    payload = payload.replace(/-/g, "+").replace(/_/g, "/");
+    while (payload.length % 4) payload += "=";
+    // 3. atob() decodes base64 to a string; JSON.parse turns it into an object
+    const claims = JSON.parse(atob(payload));
+    return claims.role ?? null;
+  } catch {
+    return null; // malformed token -> treat as "no known role"
+  }
+}
+
+// ---------------------------------------------------------------------------
 // readBody: read a Response body EXACTLY ONCE.
 //
 // A Response body is a one-time stream. Calling response.json() (or .text())
