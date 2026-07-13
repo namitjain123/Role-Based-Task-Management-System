@@ -1,6 +1,8 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Todos from "./pages/Todos";
+import AddTodo from "./pages/AddTodo";
+import EditTodo from "./pages/EditTodo";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Placeholder pages - we replace these with real components in later steps.
@@ -22,6 +24,22 @@ function App() {
         element={
           <ProtectedRoute>
             <Todos />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/todos/add"
+        element={
+          <ProtectedRoute>
+            <AddTodo />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/todos/edit/:todoId"
+        element={
+          <ProtectedRoute>
+            <EditTodo />
           </ProtectedRoute>
         }
       />

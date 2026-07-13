@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { apiFetch } from "../api";
 
 function Todos() {
@@ -71,6 +72,7 @@ function Todos() {
                 <tr>
                   <th scope="col">#</th>
                   <th scope="col">Info</th>
+                  <th scope="col">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -83,18 +85,31 @@ function Todos() {
                   <tr key={todo.id}>
                     <td style={{ width: "60px" }}>{index + 1}</td>
                     <td>{todo.title}</td>
+                    <td>
+                      <Link to={`/todos/edit/${todo.id}`} className="btn btn-info">
+                        Edit
+                      </Link>
+                    </td>
                   </tr>
                 ))}
                 {complete.map((todo) => (
                   <tr key={todo.id} className="alert alert-success">
-                    <td colSpan="2" style={{ textDecoration: "line-through" }}>
-                      {todo.title}
+                    <td style={{ textDecoration: "line-through" }}>{todo.title}</td>
+                    <td style={{ textDecoration: "line-through" }}>done</td>
+                    <td>
+                      <Link to={`/todos/edit/${todo.id}`} className="btn btn-info">
+                        Edit
+                      </Link>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           )}
+
+          <Link to="/todos/add" className="btn btn-primary">
+            Add New Todo
+          </Link>
         </div>
       </div>
     </div>
