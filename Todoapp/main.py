@@ -1,6 +1,8 @@
+import os
 from typing import Annotated
 from fastapi import FastAPI, Depends, HTTPException, Path, status,Request
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 
 
 from .database import SessionLocal, engine
@@ -12,6 +14,22 @@ from .routers import auth,todos,admin, users
 from fastapi.responses import RedirectResponse
 
 app = FastAPI()
+
+# Allow the React dev server (and, later, your deployed frontend) to call this API
+# from the browser. Without this, the browser blocks cross-origin requests.
+# FRONTEND_ORIGINS can be overridden by an env var in production (comma-separated).
+frontend_origins = os.getenv(
+    "FRONTEND_ORIGINS",
+    "http://localhost:5173,http://127.0.0.1:5173",
+).split(",")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=frontend_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 ## create the database
 Base.metadata.create_all(bind=engine)

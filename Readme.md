@@ -174,9 +174,7 @@ http://127.0.0.1:8000
 ---
 ## Future Improvements
 - React Frontend Integration
-- Role-based Access Control (RBAC)
 - Pagination & Filtering
-- Deployment (AWS / Azure)
 
 ---
 📌 Author

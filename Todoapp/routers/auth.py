@@ -70,6 +70,7 @@ def authenticate_user(db: Session, username: str, password: str):
         return False
     return user
 
+##builds jwt token for user.
 def create_access_token(username:str,user_id:int,role:str,expires_delta: timedelta = timedelta(minutes=15)):
     to_encode = {"sub": username, "user_id": user_id, "role": role}
     expires=datetime.now(timezone.utc) + expires_delta
