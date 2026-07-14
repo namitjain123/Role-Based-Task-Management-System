@@ -1,6 +1,7 @@
 .git
 .gitignore
 .env
+**/.env
 *.db
 __pycache__/
 **/__pycache__/
@@ -13,3 +14,9 @@ notes.md
 Readme.md
 assets/
 docker-compose.yml
+
+# Frontend: node_modules and any local build are rebuilt fresh inside the
+# Docker image, so never copy the (large, platform-specific) local ones.
+frontend/node_modules
+**/node_modules
+frontend/dist

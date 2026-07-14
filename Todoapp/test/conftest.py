@@ -55,6 +55,34 @@ def db():
         session.close()
 
 
+@pytest.fixture
+def as_non_admin():
+    """
+    Temporarily makes the fake logged-in user a non-admin (role='user'),
+    for the duration of a single test. Every other test runs as the default
+    fake admin (see override_get_current_user above) - this fixture is how
+    a test proves an endpoint actually REJECTS a non-admin, instead of just
+    assuming it does because it looks right.
+    """
+    app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(
+        id=2, username="bob", role="user"
+    )
+    yield
+    # Restore the default admin override so later tests aren't affected.
+    app.dependency_overrides[get_current_user] = override_get_current_user
+
+
+@pytest.fixture
+def as_logged_out():
+    """
+    Temporarily simulates no logged-in user at all - get_current_user
+    returns None, exactly like a request with a missing or invalid token.
+    """
+    app.dependency_overrides[get_current_user] = lambda: None
+    yield
+    app.dependency_overrides[get_current_user] = override_get_current_user
+
+
 @pytest.fixture(autouse=True)
 def seed_and_cleanup():
     """Seeds 1 todo before each test and cleans the table after."""
