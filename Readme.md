@@ -292,7 +292,6 @@ push to main
 - Admin activity log (audit trail of who changed what)
 - Personal analytics dashboard (completion rate, priority breakdown)
 - Refresh tokens (currently a 30-minute expiry requires re-login)
-- Restrict admin self-registration (currently any user can register as `admin`)
 
 ---
 
