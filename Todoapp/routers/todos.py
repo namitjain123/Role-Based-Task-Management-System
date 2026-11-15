@@ -241,6 +241,8 @@ async def create_todo( user: user_dependency, db: db_dependency,todo_request: To
 async def update_todo( user: user_dependency, db: db_dependency,
                       todo_request: TodoRequest,
                       todo_id:int =Path(gt=0)):
+    if user is None:
+        raise HTTPException(status_code=400, detail="Invalid user")
     todo_model = db.query(models.Todos).filter(models.Todos.id == todo_id)\
     .filter(models.Todos.owner_id == user.id).first()
     if todo_model is None:

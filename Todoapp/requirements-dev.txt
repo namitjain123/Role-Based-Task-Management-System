@@ -1,0 +1,6 @@
+# Dev/test-only dependencies. Kept out of requirements.txt so the Docker
+# image doesn't ship Playwright.
+#   pip install -r Todoapp/requirements-dev.txt
+#   playwright install chromium
+-r requirements.txt
+pytest-playwright==0.10.0

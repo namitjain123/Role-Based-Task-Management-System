@@ -10,3 +10,4 @@ migrations/
 .env
 *.db
 .pytest_cache/
+test-results/

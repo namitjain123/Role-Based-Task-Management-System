@@ -9,6 +9,7 @@ from Todoapp.main import app
 from Todoapp.database import Base
 from Todoapp.models import Todos
 from Todoapp.routers.todos import get_db, get_current_user
+from Todoapp.routers import auth as auth_router, users as users_router, admin as admin_router
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./testdb.db"
 
@@ -40,7 +41,12 @@ def override_get_current_user():
 @pytest.fixture(scope="session")
 def client():
     # Override dependencies once per test session
+    # Each router defines its OWN get_db function, so each one has to be
+    # pointed at the test database separately.
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[auth_router.get_db] = override_get_db
+    app.dependency_overrides[users_router.get_db] = override_get_db
+    app.dependency_overrides[admin_router.get_db] = override_get_db
     app.dependency_overrides[get_current_user] = override_get_current_user
     return TestClient(app)
 
@@ -83,6 +89,17 @@ def as_logged_out():
     app.dependency_overrides[get_current_user] = override_get_current_user
 
 
+@pytest.fixture
+def real_auth():
+    """
+    Removes the fake-user override for one test, so the REAL get_current_user
+    runs: the request must carry a valid JWT, exactly like production.
+    """
+    app.dependency_overrides.pop(get_current_user, None)
+    yield
+    app.dependency_overrides[get_current_user] = override_get_current_user
+
+
 @pytest.fixture(autouse=True)
 def seed_and_cleanup():
     """Seeds 1 todo before each test and cleans the table after."""
@@ -103,4 +120,5 @@ def seed_and_cleanup():
 
     with engine.connect() as connection:
         connection.execute(text("DELETE FROM todos"))
+        connection.execute(text("DELETE FROM users"))
         connection.commit()
